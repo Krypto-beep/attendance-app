@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create a Quiz · AttendIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="mark">A</div><span>AttendIQ</span></div>
+    <div class="nav-group-label">Organizer</div>
+    <a class="nav-link" href="lecturer-dashboard.html"><span class="ic">▤</span> Dashboard</a>
+    <a class="nav-link" href="generate-qr.html"><span class="ic">▢</span> Generate QR code</a>
+    <a class="nav-link" href="quiz-creator.html"><span class="ic">?</span> Create a task</a>
+    <div class="sidebar-footer">Signed in as<br><strong style="color:#e6e9f4;">N. Dube</strong><br><a href="index.html" style="color:#8890a8;">Sign out</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Absent-session cover</div>
+        <h1>Create a catch-up quiz</h1>
+        <p class="mt-0 muted">Set a short task so members stay on track even when you can't be there in person.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="grid-2" style="margin-bottom:1rem;">
+        <div class="field">
+          <label for="qc-module">Group</label>
+          <select id="qc-module"></select>
+        </div>
+        <div class="field">
+          <label for="qc-due">Due date</label>
+          <input type="date" id="qc-due" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="qc-title">Quiz title</label>
+        <input type="text" id="qc-title" placeholder="e.g. Week 6 — Normalisation catch-up" />
+      </div>
+
+      <h3 style="margin-top:1.6rem;">Questions</h3>
+      <div id="questions-list"></div>
+      <button class="btn btn-ghost" onclick="addQuestion()" style="margin-bottom:1.4rem;">+ Add question</button>
+
+      <div class="flex-between">
+        <span class="muted" style="font-size:0.82rem;" id="q-count">0 questions</span>
+        <button class="btn btn-primary" onclick="publishQuiz()">Publish to members</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const moduleSelect = document.getElementById("qc-module");
+  MOCK_LECTURER.modules.forEach((m) => {
+    const opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = m.name;
+    moduleSelect.appendChild(opt);
+  });
+
+  let questionCount = 0;
+
+  function addQuestion() {
+    questionCount++;
+    const id = questionCount;
+    const wrap = document.createElement("div");
+    wrap.className = "panel";
+    wrap.style.background = "var(--paper)";
+    wrap.style.boxShadow = "none";
+    wrap.id = `q-${id}`;
+    wrap.innerHTML = `
+      <div class="flex-between" style="margin-bottom:0.8rem;">
+        <strong style="font-size:0.88rem;">Question ${id}</strong>
+        <button class="btn btn-danger-ghost" style="padding:0.2em 0.6em; font-size:0.75rem;" onclick="removeQuestion(${id})">Remove</button>
+      </div>
+      <div class="field">
+        <label>Question text</label>
+        <input type="text" placeholder="Type the question" />
+      </div>
+      <div class="field">
+        <label>Options (mark the correct one)</label>
+        <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
+          <input type="radio" name="correct-${id}" checked />
+          <input type="text" placeholder="Option A" />
+        </div>
+        <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
+          <input type="radio" name="correct-${id}" />
+          <input type="text" placeholder="Option B" />
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input type="radio" name="correct-${id}" />
+          <input type="text" placeholder="Option C" />
+        </div>
+      </div>
+    `;
+    document.getElementById("questions-list").appendChild(wrap);
+    updateCount();
+  }
+
+  function removeQuestion(id) {
+    document.getElementById(`q-${id}`).remove();
+    updateCount();
+  }
+
+  function updateCount() {
+    const n = document.getElementById("questions-list").children.length;
+    document.getElementById("q-count").textContent = `${n} question${n === 1 ? "" : "s"}`;
+  }
+
+  function publishQuiz() {
+    const title = document.getElementById("qc-title").value;
+    if (!title || document.getElementById("questions-list").children.length === 0) {
+      alert("Add a title and at least one question before publishing.");
+      return;
+    }
+    // TODO (backend team): collect all question/option inputs above into an
+    // object and POST it to your API so it appears on members' quizzes.html.
+    alert(`"${title}" published to members (demo only — not yet connected to a server).`);
+  }
+
+  addQuestion(); // start with one question ready to fill in
+</script>
+
+</body>
+</html>

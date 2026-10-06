@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Catch-up Quizzes · AttendIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="mark">A</div><span>AttendIQ</span></div>
+    <div class="nav-group-label">Member</div>
+    <a class="nav-link" href="student-dashboard.html"><span class="ic">▤</span> My attendance</a>
+    <a class="nav-link" href="scan.html"><span class="ic">▢</span> Scan QR code</a>
+    <a class="nav-link" href="sick-note.html"><span class="ic">✎</span> Submit absence note</a>
+    <a class="nav-link" href="quizzes.html"><span class="ic">?</span> Catch-up tasks</a>
+    <div class="sidebar-footer">Signed in as<br><strong style="color:#e6e9f4;">Thato Mokoena</strong><br><a href="index.html" style="color:#8890a8;">Sign out</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Stay on track</div>
+        <h1>Catch-up tasks</h1>
+        <p class="mt-0 muted">Set by organizers for sessions they couldn't run in person, so you don't fall behind.</p>
+      </div>
+    </div>
+
+    <!-- Quiz list -->
+    <div id="quiz-list-view">
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="mt-0">New Hire Onboarding — Absence catch-up</h3>
+          <span class="badge badge-watch">Due Friday</span>
+        </div>
+        <p class="muted" style="font-size:0.86rem;">5 questions · covers the session you missed (Wed 24 Sep)</p>
+        <button class="btn btn-primary" onclick="startQuiz()">Start task</button>
+      </div>
+
+      <div class="panel" style="opacity:0.7;">
+        <div class="panel-head">
+          <h3 class="mt-0">Tuesday Evening Yoga — Session recap</h3>
+          <span class="badge badge-ok">Completed · 80%</span>
+        </div>
+        <p class="muted" style="font-size:0.86rem;">4 questions · submitted 18 Sep</p>
+      </div>
+    </div>
+
+    <!-- Quiz taking view -->
+    <div id="quiz-taking-view" class="hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="mt-0" id="quiz-title">Question 1 of 3</h3>
+          <span class="muted" id="quiz-progress" style="font-size:0.8rem;"></span>
+        </div>
+        <p id="quiz-question" style="font-size:1rem; color:var(--ink); font-weight:500;"></p>
+        <div id="quiz-options"></div>
+        <button class="btn btn-primary" id="quiz-next-btn" onclick="nextQuestion()">Next</button>
+      </div>
+    </div>
+
+    <!-- Quiz result view -->
+    <div id="quiz-result-view" class="hidden">
+      <div class="panel text-center">
+        <h2>Nice work!</h2>
+        <p class="muted">You scored <strong id="quiz-score" style="color:var(--ink);"></strong> on this catch-up quiz.</p>
+        <a href="quizzes.html" class="btn btn-ghost">Back to quizzes</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // Simple hardcoded quiz — in the real system, the lecturer's
+  // quiz-creator.html page would generate this data and your backend
+  // would serve it via an API call.
+  const quiz = [
+    { q: "Who should you contact first if you're unsure about a policy?", options: ["Your onboarding buddy", "Head office directly", "Nobody, just guess"], answer: 0 },
+    { q: "Where can you find the onboarding handbook?", options: ["Shared drive", "It doesn't exist", "Printed only"], answer: 0 },
+    { q: "What's the next step after completing this task?", options: ["Mark it complete and move to the next module", "Nothing, you're done forever", "Repeat it weekly"], answer: 0 },
+  ];
+  let currentQ = 0;
+  let score = 0;
+  let selectedOption = null;
+
+  function startQuiz() {
+    document.getElementById("quiz-list-view").classList.add("hidden");
+    document.getElementById("quiz-taking-view").classList.remove("hidden");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const item = quiz[currentQ];
+    selectedOption = null;
+    document.getElementById("quiz-title").textContent = `Question ${currentQ + 1} of ${quiz.length}`;
+    document.getElementById("quiz-progress").textContent = `Score so far: ${score}/${currentQ}`;
+    document.getElementById("quiz-question").textContent = item.q;
+
+    const optionsEl = document.getElementById("quiz-options");
+    optionsEl.innerHTML = "";
+    item.options.forEach((opt, i) => {
+      const btn = document.createElement("button");
+      btn.textContent = opt;
+      btn.className = "btn btn-ghost";
+      btn.style.display = "block";
+      btn.style.width = "100%";
+      btn.style.textAlign = "left";
+      btn.style.marginBottom = "0.6rem";
+      btn.onclick = () => {
+        selectedOption = i;
+        // Visually mark the chosen option
+        [...optionsEl.children].forEach((c) => (c.style.borderColor = "var(--border)"));
+        btn.style.borderColor = "var(--indigo-500)";
+      };
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function nextQuestion() {
+    if (selectedOption === null) {
+      alert("Pick an answer first.");
+      return;
+    }
+    if (selectedOption === quiz[currentQ].answer) score++;
+    currentQ++;
+    if (currentQ < quiz.length) {
+      renderQuestion();
+    } else {
+      document.getElementById("quiz-taking-view").classList.add("hidden");
+      document.getElementById("quiz-result-view").classList.remove("hidden");
+      document.getElementById("quiz-score").textContent = `${score}/${quiz.length}`;
+      // TODO (backend team): POST the score to your API here.
+    }
+  }
+</script>
+
+</body>
+</html>

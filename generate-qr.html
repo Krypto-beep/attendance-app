@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Generate QR Code · AttendIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="mark">A</div><span>AttendIQ</span></div>
+    <div class="nav-group-label">Organizer</div>
+    <a class="nav-link" href="lecturer-dashboard.html"><span class="ic">▤</span> Dashboard</a>
+    <a class="nav-link" href="generate-qr.html"><span class="ic">▢</span> Generate QR code</a>
+    <a class="nav-link" href="quiz-creator.html"><span class="ic">?</span> Create a task</a>
+    <div class="sidebar-footer">Signed in as<br><strong style="color:#e6e9f4;">N. Dube</strong><br><a href="index.html" style="color:#8890a8;">Sign out</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Session check-in</div>
+        <h1>Generate a session QR code</h1>
+        <p class="mt-0 muted">Display this on a screen or projector. Members scan it from their phones to mark attendance for this specific session.</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="field">
+          <label for="module-select">Group</label>
+          <select id="module-select"></select>
+        </div>
+        <div class="field">
+          <label for="session-label">Session label</label>
+          <input type="text" id="session-label" placeholder="e.g. Week 6 — Lecture" />
+        </div>
+        <div class="field">
+          <label for="expiry">Code expires after</label>
+          <select id="expiry">
+            <option value="10">10 minutes</option>
+            <option value="15" selected>15 minutes</option>
+            <option value="30">30 minutes</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateCode()">Generate code</button>
+      </div>
+
+      <div class="panel text-center">
+        <h3>Live code</h3>
+        <div id="qr-empty" class="muted" style="padding:3rem 0;">Set the details and generate a code to display it here.</div>
+        <div id="qr-display" class="hidden">
+          <div id="qrcode" style="display:inline-block; padding:1rem; background:#fff; border-radius:var(--radius); border:1px solid var(--border);"></div>
+          <p style="margin-top:1rem; font-weight:600;" id="qr-caption"></p>
+          <p class="muted" style="font-size:0.82rem;" id="qr-expiry-note"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const moduleSelect = document.getElementById("module-select");
+  MOCK_LECTURER.modules.forEach((m) => {
+    const opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = m.name;
+    moduleSelect.appendChild(opt);
+  });
+
+  let qr = null;
+
+  function generateCode() {
+    const moduleName = moduleSelect.options[moduleSelect.selectedIndex].textContent;
+    const label = document.getElementById("session-label").value || "Untitled session";
+    const expiryMins = document.getElementById("expiry").value;
+
+    // The QR payload — in production this should be a signed/unique token
+    // your backend issues and can verify, not just plain text like this.
+    const payload = `SESSION::${moduleSelect.value}::${Date.now()}`;
+
+    document.getElementById("qr-empty").classList.add("hidden");
+    document.getElementById("qr-display").classList.remove("hidden");
+    document.getElementById("qrcode").innerHTML = ""; // clear previous code
+    qr = new QRCode(document.getElementById("qrcode"), {
+      text: payload,
+      width: 200,
+      height: 200,
+      colorDark: "#10192e",
+    });
+
+    document.getElementById("qr-caption").textContent = `${moduleName} — ${label}`;
+    document.getElementById("qr-expiry-note").textContent = `Expires in ${expiryMins} minutes`;
+
+    // TODO (backend team): also POST { moduleId, label, expiryMins } to your
+    // API so it can issue a real, verifiable session token instead of this
+    // placeholder payload, and so scans can be validated server-side.
+  }
+</script>
+
+</body>
+</html>

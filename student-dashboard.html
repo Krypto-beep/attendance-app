@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Attendance · AttendIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="mark">A</div>
+      <span>AttendIQ</span>
+    </div>
+
+    <div class="nav-group-label">Member</div>
+    <a class="nav-link" href="student-dashboard.html"><span class="ic">▤</span> My attendance</a>
+    <a class="nav-link" href="scan.html"><span class="ic">▢</span> Scan QR code</a>
+    <a class="nav-link" href="sick-note.html"><span class="ic">✎</span> Submit absence note</a>
+    <a class="nav-link" href="quizzes.html"><span class="ic">?</span> Catch-up tasks</a>
+
+    <div class="sidebar-footer">
+      Signed in as<br><strong style="color:#e6e9f4;">Thato Mokoena</strong><br>
+      <a href="index.html" style="color:#8890a8;">Sign out</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Overview</div>
+        <h1>Hey Thato, here's your week.</h1>
+        <p class="mt-0 muted">Attendance is checked in real time as you scan each session's QR code.</p>
+      </div>
+      <a href="scan.html" class="btn btn-gold">▢ Scan today's code</a>
+    </div>
+
+    <!-- Week strip -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3 class="mt-0">This week</h3>
+        <span class="muted" style="font-size:0.8rem;">3 present · 1 absent · 1 pending</span>
+      </div>
+      <div class="week-strip" id="week-strip"></div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Groups -->
+      <div class="panel">
+        <h3>My groups</h3>
+        <table>
+          <thead><tr><th>Group</th><th>Attendance</th></tr></thead>
+          <tbody id="module-table"></tbody>
+        </table>
+      </div>
+
+      <!-- Quick actions / alerts -->
+      <div class="panel">
+        <h3>Alerts</h3>
+        <div class="panel" style="background:var(--warning-bg); border-color:#eeddb8; box-shadow:none; margin-bottom:0.8rem;">
+          <strong style="font-size:0.88rem;">Tuesday Evening Yoga — attendance dipping</strong>
+          <p class="mt-0 muted" style="font-size:0.84rem;">You've missed 2 of the last 4 sessions. Missing 1 more may flag you as at-risk.</p>
+        </div>
+        <div class="panel" style="background:var(--paper); box-shadow:none; margin-bottom:0;">
+          <strong style="font-size:0.88rem;">Catch-up task available</strong>
+          <p class="mt-0 muted" style="font-size:0.84rem;">New Hire Onboarding — Wed session (organizer absent). Due Friday.</p>
+          <a href="quizzes.html" class="btn btn-ghost" style="font-size:0.8rem; padding:0.4em 0.9em;">Go to task →</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // Render the week strip from mock data (see js/app.js)
+  const stripEl = document.getElementById("week-strip");
+  MOCK_WEEK.forEach(({ day, status }) => {
+    const cell = document.createElement("div");
+    cell.className = `day-cell ${status}`;
+    cell.innerHTML = `<div class="d">${day}</div><div class="status-dot"></div><div style="font-size:0.72rem; text-transform:capitalize;">${status}</div>`;
+    stripEl.appendChild(cell);
+  });
+
+  // Render module attendance percentages (mock numbers for now)
+  const moduleAttendance = { "Product Team Standup": 91, "New Hire Onboarding": 96, "Tuesday Evening Yoga": 68 };
+  const tableEl = document.getElementById("module-table");
+  MOCK_STUDENT.modules.forEach((mod) => {
+    const pct = moduleAttendance[mod] ?? 100;
+    const badgeClass = pct >= 85 ? "badge-ok" : pct >= 75 ? "badge-watch" : "badge-risk";
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${mod}</td><td><span class="badge ${badgeClass}">${pct}%</span></td>`;
+    tableEl.appendChild(row);
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard · AttendIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="mark">A</div><span>AttendIQ</span></div>
+    <div class="nav-group-label">Organizer</div>
+    <a class="nav-link" href="lecturer-dashboard.html"><span class="ic">▤</span> Dashboard</a>
+    <a class="nav-link" href="generate-qr.html"><span class="ic">▢</span> Generate QR code</a>
+    <a class="nav-link" href="quiz-creator.html"><span class="ic">?</span> Create a task</a>
+    <div class="sidebar-footer">Signed in as<br><strong style="color:#e6e9f4;">N. Dube</strong><br><a href="index.html" style="color:#8890a8;">Sign out</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Analytics</div>
+        <h1>Your groups, at a glance</h1>
+        <p class="mt-0 muted">Switch groups to see attendance trends and flagged members for that group.</p>
+      </div>
+      <select id="module-switcher" style="max-width:260px;"></select>
+    </div>
+
+    <!-- Stat row -->
+    <div class="panel">
+      <div class="grid-3">
+        <div class="stat">
+          <span class="num" id="stat-this-week">—</span>
+          <span class="label">Attended this week</span>
+          <span class="delta down" id="stat-delta">↓ vs last week</span>
+        </div>
+        <div class="stat">
+          <span class="num" id="stat-last-week">—</span>
+          <span class="label">Attended last week</span>
+        </div>
+        <div class="stat">
+          <span class="num" id="stat-at-risk">—</span>
+          <span class="label">Members at risk</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Trend chart -->
+      <div class="panel">
+        <h3>Attendance trend</h3>
+        <canvas id="trend-chart" height="200"></canvas>
+      </div>
+
+      <!-- At-risk list -->
+      <div class="panel">
+        <h3>Members to check in on</h3>
+        <table>
+          <thead><tr><th>Member</th><th>Missed</th><th>Severity</th><th></th></tr></thead>
+          <tbody id="at-risk-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Escalation modal-ish panel (kept simple, no modal library needed) -->
+<div id="escalate-overlay" class="hidden" style="position:fixed; inset:0; background:rgba(16,25,46,0.5); display:flex; align-items:center; justify-content:center; z-index:50;">
+  <div class="panel" style="max-width:420px; width:90%;">
+    <h3 class="mt-0">Escalate absence</h3>
+    <p class="muted" id="escalate-name" style="font-size:0.88rem;"></p>
+    <div class="field">
+      <label>Action</label>
+      <select id="escalate-action">
+        <option>Send automated email to member</option>
+        <option>Notify emergency contact</option>
+        <option>Flag to support team</option>
+        <option>Request a meeting</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Note (optional)</label>
+      <textarea rows="3" placeholder="Add context for the record"></textarea>
+    </div>
+    <div class="flex-between">
+      <button class="btn btn-ghost" onclick="closeEscalate()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmEscalate()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // Populate module switcher from mock lecturer data
+  const switcherEl = document.getElementById("module-switcher");
+  MOCK_LECTURER.modules.forEach((m) => {
+    const opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = `${m.name} (${m.students} members)`;
+    switcherEl.appendChild(opt);
+  });
+
+  let trendChart = null;
+
+  function renderModule(moduleId) {
+    const trend = MOCK_ATTENDANCE_TRENDS[moduleId];
+    const thisWeek = trend.data[trend.data.length - 1];
+    const lastWeek = trend.data[trend.data.length - 2];
+
+    document.getElementById("stat-this-week").textContent = thisWeek + "%";
+    document.getElementById("stat-last-week").textContent = lastWeek + "%";
+    const deltaEl = document.getElementById("stat-delta");
+    const diff = thisWeek - lastWeek;
+    deltaEl.textContent = (diff >= 0 ? "↑ " : "↓ ") + Math.abs(diff) + "% vs last week";
+    deltaEl.className = "delta " + (diff >= 0 ? "up" : "down");
+
+    // At-risk list filtered to this module
+    const moduleName = MOCK_LECTURER.modules.find((m) => m.id === moduleId).name;
+    const atRisk = MOCK_AT_RISK.filter((s) => s.module === moduleName);
+    document.getElementById("stat-at-risk").textContent = atRisk.length;
+
+    const tbody = document.getElementById("at-risk-table");
+    tbody.innerHTML = "";
+    if (atRisk.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="muted">No flagged members in this group right now.</td></tr>`;
+    }
+    atRisk.forEach((s) => {
+      const pct = Math.min(100, s.missed * 20);
+      const badgeClass = s.level === "risk" ? "badge-risk" : "badge-watch";
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${s.name}</td>
+        <td>${s.missed} sessions</td>
+        <td>
+          <span class="badge ${badgeClass}">${s.level === "risk" ? "At risk" : "Watch"}</span>
+          <div class="risk-bar-track" style="margin-top:0.3rem;"><div class="risk-bar-fill" style="width:${pct}%;"></div></div>
+        </td>
+        <td><button class="btn btn-danger-ghost" style="padding:0.3em 0.7em; font-size:0.78rem;" onclick="openEscalate('${s.name}')">Escalate</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Chart.js trend line
+    if (trendChart) trendChart.destroy();
+    trendChart = new Chart(document.getElementById("trend-chart"), {
+      type: "line",
+      data: {
+        labels: trend.labels,
+        datasets: [{
+          label: moduleName,
+          data: trend.data,
+          borderColor: "#d9a441",
+          backgroundColor: "rgba(217,164,65,0.12)",
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: "#10192e",
+        }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { min: 40, max: 100, ticks: { callback: (v) => v + "%" } } },
+      },
+    });
+  }
+
+  switcherEl.addEventListener("change", (e) => renderModule(e.target.value));
+  renderModule(MOCK_LECTURER.modules[0].id); // load first module by default
+
+  // Escalation panel logic
+  function openEscalate(name) {
+    document.getElementById("escalate-name").textContent = `Regarding: ${name}`;
+    document.getElementById("escalate-overlay").classList.remove("hidden");
+  }
+  function closeEscalate() {
+    document.getElementById("escalate-overlay").classList.add("hidden");
+  }
+  function confirmEscalate() {
+    // TODO (backend team): POST this to your API — e.g. an email/notification service.
+    alert("Escalation sent (demo only — not yet connected to a server).");
+    closeEscalate();
+  }
+</script>
+
+</body>
+</html>

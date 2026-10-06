@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign in · Attendance System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="auth-shell">
+
+  <!-- Left: brand panel -->
+  <div class="auth-side">
+    <div>
+      <div class="sidebar-brand" style="border-bottom:none; padding-left:0;">
+        <div class="mark">A</div>
+        <span>AttendIQ</span>
+      </div>
+      <h1>Attendance that actually tells you something.</h1>
+      <p>QR check-ins, at-risk alerts, catch-up tasks and emergency-contact updates — all in one place. Built for classrooms, teams, shifts, and anywhere else attendance matters.</p>
+    </div>
+    <p style="font-size:0.8rem; color:#7580a0;">Works for schools, workplaces, gyms, and events alike</p>
+  </div>
+
+  <!-- Right: form -->
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+      <h2>Welcome back</h2>
+      <p class="muted" style="margin-bottom:1.4rem;">Sign in to continue to your dashboard.</p>
+
+      <div class="role-toggle">
+        <button type="button" class="active" id="btn-role-student" onclick="setRole('student')">I'm a member</button>
+        <button type="button" id="btn-role-lecturer" onclick="setRole('lecturer')">I'm an organizer</button>
+      </div>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Sign in</button>
+      </form>
+
+      <p class="text-center muted" style="margin-top:1.2rem; font-size:0.82rem;">
+        Trouble signing in? Contact your organizer or admin.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let selectedRole = "student";
+
+  function setRole(role) {
+    selectedRole = role;
+    document.getElementById("btn-role-student").classList.toggle("active", role === "student");
+    document.getElementById("btn-role-lecturer").classList.toggle("active", role === "lecturer");
+  }
+
+  document.getElementById("login-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    // TODO (backend team): replace this with a real fetch() call to your
+    // login API. For now we just redirect based on the selected role so
+    // the frontend flow can be demoed end to end.
+    if (selectedRole === "student") {
+      window.location.href = "student-dashboard.html";
+    } else {
+      window.location.href = "lecturer-dashboard.html";
+    }
+  });
+</script>
+
+</body>
+</html>

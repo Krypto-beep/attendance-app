@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Submit Absence Note · AttendIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="mark">A</div><span>AttendIQ</span></div>
+    <div class="nav-group-label">Member</div>
+    <a class="nav-link" href="student-dashboard.html"><span class="ic">▤</span> My attendance</a>
+    <a class="nav-link" href="scan.html"><span class="ic">▢</span> Scan QR code</a>
+    <a class="nav-link" href="sick-note.html"><span class="ic">✎</span> Submit absence note</a>
+    <a class="nav-link" href="quizzes.html"><span class="ic">?</span> Catch-up tasks</a>
+    <div class="sidebar-footer">Signed in as<br><strong style="color:#e6e9f4;">Thato Mokoena</strong><br><a href="index.html" style="color:#8890a8;">Sign out</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Absence</div>
+        <h1>Submit an absence note</h1>
+        <p class="mt-0 muted">Attach proof for a missed session. Your organizer will review and approve or reject it.</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <form id="sick-note-form">
+          <div class="field">
+            <label for="module">Group</label>
+            <select id="module" required>
+              <option value="">Select the group session you missed</option>
+              <option>Product Team Standup</option>
+              <option>New Hire Onboarding</option>
+              <option>Tuesday Evening Yoga</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="session-date">Date of missed session</label>
+            <input type="date" id="session-date" required />
+          </div>
+
+          <div class="field">
+            <label for="reason">Reason</label>
+            <textarea id="reason" rows="3" placeholder="Briefly explain what happened" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="proof">Proof (doctor's note, clinic letter, etc.)</label>
+            <input type="file" id="proof" accept=".pdf,.jpg,.jpeg,.png" required />
+          </div>
+
+          <button type="submit" class="btn btn-primary">Submit for review</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h3>Your submissions</h3>
+        <table>
+          <thead><tr><th>Group</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Tuesday Evening Yoga</td><td>12 Sep</td><td><span class="badge badge-watch">Pending</span></td></tr>
+            <tr><td>New Hire Onboarding</td><td>03 Sep</td><td><span class="badge badge-ok">Approved</span></td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="font-size:0.8rem; margin-top:1rem;">This list is placeholder data — wire it up to your API once submissions are stored server-side.</p>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  document.getElementById("sick-note-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    // TODO (backend team): send this as multipart/form-data to your API, e.g.
+    //   const formData = new FormData();
+    //   formData.append("module", document.getElementById("module").value);
+    //   formData.append("proof", document.getElementById("proof").files[0]);
+    //   fetch("https://your-api.com/sick-notes", { method: "POST", body: formData });
+    alert("Absence note submitted for review (demo only — not yet connected to a server).");
+    e.target.reset();
+  });
+</script>
+
+</body>
+</html>
